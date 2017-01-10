@@ -1,0 +1,34 @@
+precision mediump float;
+
+uniform sampler2D u_texture0;
+uniform float u_blur;
+
+varying vec2 v_uv;
+
+const int samples = 12;
+const float half_blur = float(samples) * 0.5;
+const float blur_strength = 0.8;
+
+float gaussian (float x, float deviation)
+{
+	return (1.0 / sqrt(2.0 * 3.141592 * deviation)) * exp(-((x * x) / (2.0 * deviation)));  
+}
+
+void main()
+{
+	gl_FragColor = texture2D(u_texture0, v_uv);
+	
+	float deviation = half_blur * 0.35;
+    deviation *= deviation;
+                
+	vec4 color = vec4(0.0);
+	
+    for (int i = 0; i < samples; ++i)
+    {
+		float offset = float(i) - half_blur;
+        color += texture2D(u_texture0, v_uv + vec2(0.0, offset * u_blur)) * gaussian(offset * blur_strength, deviation);
+    }
+                
+    gl_FragColor = clamp(color, 0.0, 1.0);
+    gl_FragColor.a = 1.0;
+}
